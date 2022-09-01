@@ -1,0 +1,40 @@
+
+
+
+
+  <div class="roomListRoom">
+    <h1>Running Events</h1>
+
+      {% for event in events_run %}
+      
+ 
+          <div class="roomListRoom__header">
+                    <a href="{% url 'results-event' event.id %}" class="roomListRoom__author">
+                      <span>{{event.EventName}} </span>
+                    </a>
+          </div>
+ 
+      
+      {% endfor %}
+        </div>
+        <div class="roomListRoom">
+        <h1>Field Events</h1>
+
+        {% for event in events_field %}
+        
+   
+            <div class="roomListRoom__header">
+                      <a href="{% url 'results-event' event.id %}" class="roomListRoom__author">
+                        <span>{{event.EventName}} </span>
+                      </a>
+            </div>
+   
+        
+        {% endfor %}
+  
+
+</div>
+
+
+
+

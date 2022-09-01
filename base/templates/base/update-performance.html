@@ -1,0 +1,235 @@
+{% extends 'main.html' %}
+{% block content %}
+
+
+<html>
+  <head>
+    <title>HR Complaint Form</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700" rel="stylesheet">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
+    <style>
+      html, body {
+      min-height: 100%;
+      }
+      body, div, form, input, select, textarea, p { 
+      padding: 0;
+      margin: 0;
+      outline: none;
+      font-family: Roboto, Arial, sans-serif;
+      font-size: 14px;
+      color: #666;
+      line-height: 22px;
+      }
+      h1 {
+      margin: 15px 0;
+      font-weight: 400;
+      }
+      .testbox {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: inherit;
+      padding: 3px;
+      }
+      form {
+      width: 100%;
+      padding: 20px;
+      background: #fff;
+      box-shadow: 0 2px 5px #ccc; 
+      }
+      input, select, textarea {
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      }
+      input:hover, select:hover, textarea:hover {
+      outline: none;
+      box-shadow: 0 0 5px 0 #095484;
+      }
+      input {
+      width: calc(100% - 10px);
+      padding: 5px;
+      }
+      select {
+      width: 100%;
+      padding: 7px 0;
+      background: transparent;
+      }
+      textarea {
+      width: calc(100% - 2px);
+      paddung: 5px;
+      }
+      .item {
+      position: relative;
+      margin: 10px 0;
+      }
+      .item:hover p, .item:hover i {
+      color: #095484;
+      }
+      input:hover, select:hover, textarea:hover {
+      box-shadow: 0 0 5px 0 #095484;
+      }
+      .status:hover input {
+      box-shadow: none;
+      }
+      .status label:hover input {
+      box-shadow: 0 0 5px 0 #095484;
+      }
+      .status-item input, .status-item span {
+      width: auto;
+      vertical-align: middle;
+      }
+      .status-item input {
+      margin: 0;
+      }
+      .status-item span {
+      margin: 0 20px 0 5px;
+      }
+      input[type="date"]::-webkit-inner-spin-button {
+      display: none;
+      }
+      input[type="time"]::-webkit-inner-spin-button {
+      margin: 2px 22px 0 0;
+      }
+      .item i, input[type="date"]::-webkit-calendar-picker-indicator {
+      position: absolute;
+      font-size: 20px;
+      color: #a9a9a9;
+      }
+      .item i {
+      right: 1%;
+      top: 30px;
+      z-index: 1;
+      }
+      [type="date"]::-webkit-calendar-picker-indicator {
+      right: 0;
+      z-index: 2;
+      opacity: 0;
+      cursor: pointer;
+      }
+      .btn-block {
+      margin-top: 20px;
+      text-align: center;
+      }
+      button {
+      width: auto;
+      padding: 10px;
+      border: none;
+      -webkit-border-radius: 5px; 
+      -moz-border-radius: 5px; 
+      border-radius: 5px; 
+      background-color: #095484;
+      font-size: 16px;
+      color: #fff;
+      cursor: pointer;
+      }
+      button:hover {
+      background-color: #0666a3;
+      }
+      @media (min-width: 568px) {
+      .name-item {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      }
+      .name-item input {
+      width: calc(50% - 20px);
+      }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="testbox">
+      <form action="" method="POST">
+        {% csrf_token %}
+        <h1>Update Athlete <a href="{% url 'results-event' EventID %}" class="roomListRoom__author">
+          <span> {{ EventName }} </span>
+        </a> </h1>
+        
+        <div class="item">
+            <p>Name:</p>
+            <div class="name-item">
+                <div class = "row">
+                    <div class = "col-sm-4">{{ form.EventID }}</div>
+                    <div class = "col-sm-4">{{ form.MeetID }}</div>
+                </div>
+               
+            </div>
+        </div>
+      
+        <div class="name-item">
+                <div class = "row">
+
+                  <div class = "col-sm-4"> <p>Date: <input type="text" id="datepicker" name="EventDateDP" value="{{eventdate}}"></p>
+                  </div>
+                  
+                </div>
+               
+        </div>
+        
+        <div class="name-item">
+          <div class = "row">
+
+            <div class = "col-sm-8"> Performance Note {{ form.Notes }}
+            </div>
+            
+          </div>
+         
+        </div>
+
+
+
+      <div class="item">
+        <p>Measurement:</p>
+        <div class="name-item">
+            <div class = "row">
+                <div class = "col-sm-4">{{form.MarkRawLarge}}</div>
+                <div class = "col-sm-4">{{form.MarkRawSmall}}</div>
+            </div>
+           
+        </div>
+    </div>
+      
+
+        <h1>Select Athlete</h1>
+        
+        <div class="name-item">
+          <div class = "row">
+
+            <div class = "col-sm-8"> Remove from Display {{ form.Archive }}
+            </div>
+            
+          </div>
+         
+        </div>
+
+
+
+        <div class="item">
+          {{ form.AthleteID }}
+          </div> 
+
+        <div class="btn-block">
+            <button type="submit" name="Update" href="/">Update/Submit</button>
+        </div>
+        <div class="btn-block">
+          <button type="submit" name = "Delete" href="/">Delete</button>
+      </div>
+      </form>
+
+    </div>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>jQuery UI Datepicker - Default functionality</title>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+ 
+    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+    <script>
+    $( function() {
+      $( "#datepicker" ).datepicker();
+    } );
+    </script>
+  </body>
+</html>
+    {% endblock content %}

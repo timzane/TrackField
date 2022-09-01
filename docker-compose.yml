@@ -1,0 +1,12 @@
+version: "4.0.6"
+
+services:
+  django:
+    image: django-docker:0.0.1
+    build:
+    ports:
+      - "8000:8000"
+  
+    environment:
+      DB_UPSTREAM: http://${DOCKER_GATEWAY_HOST:-host.docker.internal}:3000
+

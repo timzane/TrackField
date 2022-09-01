@@ -1,0 +1,79 @@
+{% extends 'main.html' %}
+
+{% block content %}
+ 
+
+<style type="text/css">
+  td {
+    padding: 0 15px;
+  }
+</style>
+
+
+
+    <div class="atopics-page layout__body">
+      Mens' Results {{ event.EventName }}   {% if request.user.Editor == True  %} <a href="{% url 'create-performance' event.id 1 %}">Add performance</a> {% endif %}
+      <table>
+          <tr>
+            <th>Name</th>
+            <th>Meet</th>
+            <th>Mark</th>
+            <th>Year</th>
+            <th>Edit</th>
+          </tr>
+          {% for performance in performancesmen %}
+  
+          <tr> 
+              
+    
+            <td>
+              {{forloop.counter}}.
+              <p>{% for athlete in performance.AthleteID.all %}<a href ="{% url 'view-athlete' athlete.id %}">  {{athlete.Athlete}} </a></p>
+                {% endfor %} 
+              </td> 
+              
+            <td>{{performance.MeetID.MeetName}}   </td> 
+            <td>   {% if request.user.Editor == True  %} <a href = "{% url 'update-performance' performance.id %}">{{performance.Mark}}</a> 
+                    {% else %} {{performance.Mark}} {% endif%} </td>
+            <td> {{performance.CY }}</td>
+  
+          </tr>
+  
+          {% endfor %}
+      </table>
+      </div>
+    
+    <div class="atopics-page layout__body">
+    Womens' Results {{ event.EventName }}    <a href="{% url 'create-performance' event.id 0 %}">Add performance</a>
+    <table>
+        <tr>
+          <th>Name</th>
+          <th>Meet</th>
+          <th>Mark</th>
+          <th>Year</th>
+          <th>Edit</th>
+        </tr>
+        {% for performance in performanceswomen %}
+
+        <tr> 
+            
+  
+          <td>
+            {{forloop.counter}}.
+            <p>{% for athlete in performance.AthleteID.all %}<a href ="{% url 'view-athlete' athlete.id %}">  {{athlete.Athlete}} </a></p>
+              
+              {% endfor %} 
+            </td> 
+            
+          <td>{{performance.MeetID.MeetName}}</td> 
+          <td>   {% if request.user.Editor == True  %} <a href = "{% url 'update-performance' performance.id %}">{{performance.Mark}}</a> 
+            {% else %} {{performance.Mark}} {% endif%} </td>
+          <td> {{performance.CY }}</td>
+
+        </tr>
+
+        {% endfor %}
+    </table>
+    </div>
+
+{% endblock content %}
