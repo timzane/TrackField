@@ -93,7 +93,7 @@ def resultEvent(request,pk):
     if event.FieldEvent == 1:
   
         performancesmen =   Performance.objects.filter(EventID=pk,AthleteID__Male=True,Archive=0).order_by('-MarkRawLarge','MarkRawSmall').annotate(total_athletes=Sum('AthleteID'))[0:10]
-        performanceswomen = Performance.objects.filter(EventID=pk,AthleteID__Male=False,Archive=0).order_by('MarkRawLarge','MarkRawSmall').annotate(total_athletes=Sum('AthleteID'))[0:10]
+        performanceswomen = Performance.objects.filter(EventID=pk,AthleteID__Male=False,Archive=0).order_by('-MarkRawLarge','MarkRawSmall').annotate(total_athletes=Sum('AthleteID'))[0:10]
    
     else:
        
