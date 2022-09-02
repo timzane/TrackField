@@ -4,7 +4,7 @@ from .models import Athlete, Meet, User, Event, Performance
 from django.contrib import messages
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login, logout
-from django.db.models import Q,Sum
+from django.db.models import Q,Sum, Max
 from .forms import AthleteForm, PerformanceForm, MyUserCreationForm
 from datetime import datetime
 from django.utils.dateparse import parse_date
@@ -18,12 +18,19 @@ def home(request):
     meets = Meet.objects.all()
     events = Event.objects.all()
     performance_newest_first = Performance.objects.order_by('-updated')[0:5]
+    performance_needapproval = Performance.objects.filter(Confirmed=0).order_by('-updated')[0:5]
     active_athletes = Athlete.objects.filter(Active=1).order_by('Athlete')
     events_field = Event.objects.filter(FieldEvent=1,Current=1).order_by('EventName')
     events_run = Event.objects.filter(FieldEvent=0,Current=1).order_by('EventName')
-
-    context = {'events_run':events_run,'events_field':events_field,'active_athletes':active_athletes, 'performance_newest_first':performance_newest_first,
-                    'meets':meets,'events':events,'q':q}
+    statechamps =  Performance.objects.filter(StateChamp=1)
+    leaderboardathletes = Performance.objects.values('EventID').annotate(topMark=Max('MarkRawLarge')).order_by()
+    # leaderboardathletes2 = Performance.objects.
+    # leaderboardathletes = Performance.objects.all().annotate(topMark=Max('MarkRawLarge')).order_by()
+    print (leaderboardathletes)
+    context = {'events_run':events_run,'events_field':events_field,'active_athletes':active_athletes, 
+                    'performance_newest_first':performance_newest_first,'performance_needapproval':performance_needapproval,
+                    'leaderboardathletes':leaderboardathletes,
+                    'statechamps':statechamps,'meets':meets,'events':events,'q':q}
 
     if request.method == 'POST':
         print("Post")                
@@ -85,21 +92,30 @@ def registerPage(request):
 
 
 def updateUser(request):
-    return redirect('home')    
+    return redirect('home')
 
-def resultEvent(request,pk):
 
-    event = Event.objects.get(id=pk)
-    if event.FieldEvent == 1:
+def PerformanceTopTen(FieldEvent,pk):
+    if FieldEvent == 1:
   
-        performancesmen =   Performance.objects.filter(EventID=pk,AthleteID__Male=True,Archive=0).order_by('-MarkRawLarge','MarkRawSmall').annotate(total_athletes=Sum('AthleteID'))[0:10]
-        performanceswomen = Performance.objects.filter(EventID=pk,AthleteID__Male=False,Archive=0).order_by('-MarkRawLarge','MarkRawSmall').annotate(total_athletes=Sum('AthleteID'))[0:10]
+        performancesmen =   Performance.objects.filter(EventID=pk,AthleteID__Male=True,Archive=0,Confirmed=1).order_by('-MarkRawLarge','-MarkRawSmall').annotate(total_athletes=Sum('AthleteID'))[0:10]
+        performanceswomen = Performance.objects.filter(EventID=pk,AthleteID__Male=False,Archive=0,Confirmed=1).order_by('-MarkRawLarge','-MarkRawSmall').annotate(total_athletes=Sum('AthleteID'))[0:10]
    
     else:
        
         performancesmen =   Performance.objects.filter(EventID=pk,AthleteID__Male=True,Archive=0).order_by('MarkRawLarge','MarkRawSmall').annotate(total_athletes=Sum('AthleteID'))[0:10]
         performanceswomen = Performance.objects.filter(EventID=pk,AthleteID__Male=False,Archive=0).order_by('MarkRawLarge','MarkRawSmall').annotate(total_athletes=Sum('AthleteID'))[0:10]
    
+    return{'performancesmen':performancesmen,'performanceswomen':performanceswomen}
+
+def resultEvent(request,pk):
+
+    event = Event.objects.get(id=pk)
+
+    resultscombined = PerformanceTopTen(event.FieldEvent,pk)
+    performancesmen = resultscombined['performancesmen']
+    performanceswomen = resultscombined['performanceswomen'] 
+
     event = Event.objects.get(id=pk)
     
 
@@ -128,32 +144,45 @@ def viewAthlete(request,pk):
     return render(request,'base/view-athlete.html',context)
 
 
+def numberdecimals(inputnumber):
+    numberstr = str(inputnumber)
+    decimallocation = numberstr.find(".")
+    return decimallocation
+
 def HumanReadableMark(rawmarklarge,rawmarksmall,measuretype):
     print('Measure Type: ' + str(measuretype) )
     if measuretype == "inches":
-    
         measure_human = str(rawmarklarge) + "-" + str(rawmarksmall)
         temp = {'measure_human':measure_human}
         temp['measurelabel1'] = "Feet"
         temp['measurelabel2'] = "Inches"
-
         return temp
-        # return {'measure1':int(measure1),'measure2':measure2,'measure_human':measure_human}
+     
     elif measuretype == "seconds":
- 
         temp = dict()
-        a = int(rawmarksmall)
-        b = len(str(a))
-        if b >1:
-            measure_human = str(rawmarklarge) + ":" + str(rawmarksmall)
+        markseconds = float(rawmarksmall)
+        markminute = rawmarklarge
+        # digits = len(str(markseconds))
+        number_dec = numberdecimals(markminute)
+
+        digits  = int(float(number_dec))
+        print (digits)
+        if digits > 1:
+            fillerstr = ":"
         else:
-             measure_human = str(rawmarklarge) + ":0" + str(rawmarksmall)
+            fillerstr = ":0"
+
+         
+        if int(markminute) != 0:
+            measure_human = str(markminute) + fillerstr + str(markseconds)
+        else:
+            measure_human = str(markseconds)
+
         temp['measure_human'] = measure_human
         temp['measurelabel1'] = "Minutes"
         temp['measurelabel2'] = "Seconds"
- 
-
         return temp
+
     elif measuretype == "points":
         temp = dict()
         measure_human = str(rawmarklarge) 
@@ -165,8 +194,6 @@ def HumanReadableMark(rawmarklarge,rawmarksmall,measuretype):
     return -1
 
 
-
-def RawMark2PartsOld(rawmark,measuretype):
     print('Measure Type: ' + str(measuretype) )
     if measuretype == "inches":
       
@@ -190,8 +217,6 @@ def RawMark2PartsOld(rawmark,measuretype):
         temp = {'measure1':int(measure1),'measure2':measure2,'measure_human':measure_human}
         temp['measurelabel1'] = "Minutes"
         temp['measurelabel2'] = "Seconds"
-        # temp['measure2'] = measure2
-        # temp['measure_human'] = measure_human
         print(temp)
 
         return temp
@@ -279,7 +304,7 @@ def updatePerformance(request,pk):
             
             performance.MeetID = meet
             athleteid = athlete
-            # performance.Mark = request.POST.get('Mark')
+       
             pdate = request.POST.get('EventDateDP')
             # If no date is give, keep CY date since Event Date is Unknown
             print("This is pdate")
@@ -289,19 +314,15 @@ def updatePerformance(request,pk):
                 dbenttrytime = datetime.strptime(pdate,'%m/%d/%Y')
                 performance.EventDate = dbenttrytime.strftime('%Y-%m-%d')
                 performance.CY = dbenttrytime.strftime('%Y')
-            # rawMarkStr = calculateRawMark(request.POST.get('feetname'),request.POST.get('inchesname'),performance.EventID.MeasurementSystem)
-            # performance.MarkRaw = rawMarkStr
-           
+
             performance.MarkRawLarge = request.POST.get('MarkRawLarge')
-            performance.MarRawSmall =  request.POST.get('MarkRawSmall')
+            performance.MarkRawSmall =  request.POST.get('MarkRawSmall')
             calcmeasure = HumanReadableMark(request.POST.get('MarkRawLarge'),request.POST.get('MarkRawSmall'),measure_system)            
             performance.Mark = calcmeasure['measure_human']
             performance.save()
-            performancedate = pdate
+          
 
-            context = {'form':form,'measure':measuresystem,'eventdate':performancedate,'event':eventtemp}
-            return render(request,'base/results.html',context)
-         
+            return redirect('results-event',pk=event.id)
 
         elif 'Delete' in request.POST:
             
@@ -309,7 +330,7 @@ def updatePerformance(request,pk):
             return redirect('home')
     return render(request,'base/update-performance.html',context)
 
-    return render(request,'base/update-performance.html',{'form':form,'measure':measuresystem   ,'eventdate':performancedate})
+   
 
 @login_required(login_url='/login')
 def createPerformance(request,eventid, male):

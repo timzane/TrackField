@@ -191,23 +191,27 @@
     </div>
       
 
-        <h1>Select Athlete</h1>
-        
+       
         <div class="name-item">
           <div class = "row">
 
-            <div class = "col-sm-8"> Remove from Display {{ form.Archive }}
+            <div class = "col-sm-8"> Archive performance (Do not show in reports) {{ form.Archive }}
             </div>
-            
           </div>
-         
+        </div>
+
+        <h1>Select Athlete</h1>
+                
+        <div class="btn-group" data-toggle="buttons"> 
+          {% for checkbox in form.AthleteID %}
+              <label class="btn btn-primary">
+              {{ checkbox.tag }} {{ checkbox.choice_label }}
+              </label>
+          {% endfor %}
         </div>
 
 
 
-        <div class="item">
-          {{ form.AthleteID }}
-          </div> 
 
         <div class="btn-block">
             <button type="submit" name="Update" href="/">Update/Submit</button>

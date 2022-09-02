@@ -28,10 +28,7 @@
             </div>
           </div>
           <div class="roomList__header">
-            <div>
-              <h2>Events</h2>
-      
-            </div>
+            
             <a class="btn btn--main" href="">
               <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
                 <title>add</title>
@@ -42,13 +39,17 @@
               Add Event
             </a>
           </div>
-          {% if q == 'Meets' %}
-            {% include 'base/meets_component.html' %}
 
+          
+
+          {% if q == 'Meets' %}
+              {% include 'base/meets_component.html' %}
           {% elif q == 'ActiveAthletes'  %}
-          
             {% include 'base/active_athletes.html' %}
-          
+          {% elif q == 'StateChamps'  %}
+            {% include 'base/statechampion_component.html' %}
+          {% elif q == 'TopAthlete'  %}
+            {% include 'base/component topathlete.html' %}
           {% else %}
             {% include 'base/events_component.html' %}
           {% endif %}

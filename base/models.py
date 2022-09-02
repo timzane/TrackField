@@ -13,9 +13,9 @@ class User(AbstractUser):
     email = models.EmailField(unique=True, null=True)
     bio = models.TextField(null=True)
     avatar = models.ImageField(null=True, default="avatar.svg")
-    # editor = models.BinaryField()
     # USERNAME_FIELD = 'email'
     Editor = models.BooleanField(default=False)
+    Maintainer = models.BooleanField(default=False)
     REQUIRED_FIELDS = []
 
 
@@ -61,13 +61,15 @@ class Performance(models.Model):
     MarkRawLarge = models.IntegerField()
     MarkRawSmall = models.DecimalField(decimal_places=3,max_digits=20)
     MeetID = models.ForeignKey(Meet, on_delete=models.SET_NULL,null=True)
-    PerformanceNote = models.CharField(max_length=10,null=True)
+    PerformanceNote = models.CharField(max_length=10,null=True,blank=True)
     CY = models.IntegerField(null=True)
     EventDate = models.DateField(null=True)
     Notes = models.TextField(null = True,blank=True)
     Archive = models.BooleanField()
     StateChamp = models.BooleanField(null=True)
     AthleteID = models.ManyToManyField(Athlete)
+    Confirmed = models.BooleanField(null=False,default=False)
+    Locked = models.BooleanField(null=False,default=False)
 
     updated = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)

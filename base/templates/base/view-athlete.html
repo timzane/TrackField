@@ -21,9 +21,36 @@
                     </div>
                 </div>
                 <div class="layout__body">
-                    {% for performance in performanceResults %}
-                            <p>{{performance.EventID}}   {{performance.Mark}} </p> 
-                    {% endfor %}
+              
+                
+                
+                
+                    <table>
+                        <th>
+                            <th>Event</th>
+                            <th>Mark</th>
+                            <th>Year</th>
+
+                        </th>
+                        {% for performance in performanceResults %}
+                        <tr>
+                            
+                            <td>{{performance.EventID}}</td><td>{{performance.Mark}}</td><td>{{performance.CY}} </td>{{performance.CY}}    
+                            
+                        </tr>
+                        {% endfor %}
+
+                    </table>
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
                 </div>
             </div>V
         </div>
