@@ -19,21 +19,26 @@
             <th>Meet</th>
             <th>Mark</th>
             <th>Year</th>
-            <th>Edit</th>
+          
           </tr>
           {% for performance in performancesmen %}
   
-          <tr> 
-              
-    
             <td>
               {{forloop.counter}}.
-              <p>{% for athlete in performance.AthleteID.all %}<a href ="{% url 'view-athlete' athlete.id %}">  {{athlete.Athlete}} </a></p>
+              <p>{% for athlete in performance.AthleteID.all %}<a href ="{% url 'view-athlete' athlete.id %}">  
+                
+                {{athlete.Athlete}}</a></p>
                 {% endfor %} 
-              </td> 
+            </td> 
               
             <td>{{performance.MeetID.MeetName}}   </td> 
-            <td>   {% if request.user.Editor == True  %} <a href = "{% url 'update-performance' performance.id %}">{{performance.Mark}}</a> 
+            <td>   {% if request.user.Editor == True  %} <a href = "{% url 'update-performance' performance.id %}">
+                    {% if performance.Confirmed == True %}
+                    {{performance.Mark}}
+                    {% else %}
+                   <font color="red">{{performance.Mark}}</font> 
+                    {% endif %}
+                  </a> 
                     {% else %} {{performance.Mark}} {% endif%} </td>
             <td> {{performance.CY }}</td>
   

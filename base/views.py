@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from django.db.models import Q,Sum, Max
-from .forms import AthleteForm, PerformanceForm, MyUserCreationForm
+from .forms import AthleteForm, PerformanceForm, MyUserCreationForm, UserForm
 from datetime import datetime
 from django.utils.dateparse import parse_date
 from django.contrib.auth.decorators import login_required
@@ -15,6 +15,7 @@ from django.contrib.auth.decorators import login_required
 
 def home(request):
     q = request.GET.get('q') if request.GET.get('q') != None else ''
+    # print(q)
     meets = Meet.objects.all()
     events = Event.objects.all()
     performance_newest_first = Performance.objects.order_by('-updated')[0:5]
@@ -92,27 +93,59 @@ def registerPage(request):
 
 
 def updateUser(request):
-    return redirect('home')
-
-
-def PerformanceTopTen(FieldEvent,pk):
-    if FieldEvent == 1:
-  
-        performancesmen =   Performance.objects.filter(EventID=pk,AthleteID__Male=True,Archive=0,Confirmed=1).order_by('-MarkRawLarge','-MarkRawSmall').annotate(total_athletes=Sum('AthleteID'))[0:10]
-        performanceswomen = Performance.objects.filter(EventID=pk,AthleteID__Male=False,Archive=0,Confirmed=1).order_by('-MarkRawLarge','-MarkRawSmall').annotate(total_athletes=Sum('AthleteID'))[0:10]
-   
-    else:
+    user = request.user
+    form = UserForm(instance=user)
+    
+    if request.method == 'POST':
+        form = UserForm(request.POST, request.FILES, instance=user)
        
-        performancesmen =   Performance.objects.filter(EventID=pk,AthleteID__Male=True,Archive=0).order_by('MarkRawLarge','MarkRawSmall').annotate(total_athletes=Sum('AthleteID'))[0:10]
-        performanceswomen = Performance.objects.filter(EventID=pk,AthleteID__Male=False,Archive=0).order_by('MarkRawLarge','MarkRawSmall').annotate(total_athletes=Sum('AthleteID'))[0:10]
-   
+        if form.is_valid():
+            form.save()
+            
+            return redirect('user-profile', pk=user.id)
+
+    return render(request,'base/update-user.html',{'form':form})
+
+
+def PerformanceTopTen(FieldEvent,pk,ShowAwaitingConfirmation):
+    
+    if ShowAwaitingConfirmation == True:
+        if FieldEvent == 1:
+            performancesmen =   Performance.objects.filter(EventID=pk,AthleteID__Male=True,Archive=0).\
+                    order_by('-MarkRawLarge','-MarkRawSmall').annotate(total_athletes=Sum('AthleteID'))[0:10]
+            performanceswomen = Performance.objects.filter(EventID=pk,AthleteID__Male=False,Archive=0).\
+                order_by('-MarkRawLarge','-MarkRawSmall').annotate(total_athletes=Sum('AthleteID'))[0:10]
+        else:  
+            performancesmen =   Performance.objects.filter(EventID=pk,AthleteID__Male=True,Archive=0).\
+                order_by('MarkRawLarge','MarkRawSmall').annotate(total_athletes=Sum('AthleteID'))[0:10]
+            performanceswomen = Performance.objects.filter(EventID=pk,AthleteID__Male=False,Archive=0).\
+                order_by('MarkRawLarge','MarkRawSmall').annotate(total_athletes=Sum('AthleteID'))[0:10]
+    else:
+        if FieldEvent == 1:
+            performancesmen =   Performance.objects.filter(EventID=pk,AthleteID__Male=True,Archive=0,Confirmed=1).\
+                    order_by('-MarkRawLarge','-MarkRawSmall').annotate(total_athletes=Sum('AthleteID'))[0:10]
+            performanceswomen = Performance.objects.filter(EventID=pk,AthleteID__Male=False,Archive=0,Confirmed=1).\
+                order_by('-MarkRawLarge','-MarkRawSmall').annotate(total_athletes=Sum('AthleteID'))[0:10]
+        else:  
+            performancesmen =   Performance.objects.filter(EventID=pk,AthleteID__Male=True,Archive=0).\
+                order_by('MarkRawLarge','MarkRawSmall').annotate(total_athletes=Sum('AthleteID'))[0:10]
+            performanceswomen = Performance.objects.filter(EventID=pk,AthleteID__Male=False,Archive=0).\
+                order_by('MarkRawLarge','MarkRawSmall').annotate(total_athletes=Sum('AthleteID'))[0:10]
+    
     return{'performancesmen':performancesmen,'performanceswomen':performanceswomen}
 
 def resultEvent(request,pk):
 
+    user = request.user
+    if user.Maintainer == True or user.Editor == True:
+        ShowAwaitingConfirmation = True
+    else:
+        ShowAwaitingConfirmation = False
+
+    
     event = Event.objects.get(id=pk)
 
-    resultscombined = PerformanceTopTen(event.FieldEvent,pk)
+    resultscombined = PerformanceTopTen(event.FieldEvent,pk,ShowAwaitingConfirmation)
     performancesmen = resultscombined['performancesmen']
     performanceswomen = resultscombined['performanceswomen'] 
 
@@ -136,7 +169,14 @@ def updateAthlete(request,pk):
 
     return render(request,'base/update-athlete.html',{'form':form})
 
+def searchAthlete(request):
+    q = request.GET.get('q') if request.GET.get('q') != None else ''
+    athletes = Athlete.objects.filter(Athlete__icontains=q)
+    context = {'athletes':athletes}
+    return render(request,'base/athlete-search.html',context)
+
 def viewAthlete(request,pk):
+   
     athlete = Athlete.objects.get(id=pk)
     performanceResults = Performance.objects.filter(AthleteID=athlete.id)
     context = {'performanceResults':performanceResults,'athlete':athlete}
@@ -193,44 +233,6 @@ def HumanReadableMark(rawmarklarge,rawmarksmall,measuretype):
     
     return -1
 
-
-    print('Measure Type: ' + str(measuretype) )
-    if measuretype == "inches":
-      
-        measure1 = int(int(rawmark) / 12)
-        measure2 =  float(rawmark) % 12 
-        measure_human = str(measure1) + "-" + str(measure2)
-        temp = {'measure1':int(measure1),'measure2':measure2,'measure_human':measure_human}
-        temp['measurelabel1'] = "Feet"
-        temp['measurelabel2'] = "Inches"
-
-        return temp
-        # return {'measure1':int(measure1),'measure2':measure2,'measure_human':measure_human}
-    elif measuretype == "seconds":
- 
-        temp = dict()
-        measure1 = int(int(rawmark) / 60)
-        measure2 =  float(rawmark) % 60 
-        measure2 = round(measure2,3)
-        measure_human = str(measure1) + ":" + str(measure2)
-        print(measure_human)
-        temp = {'measure1':int(measure1),'measure2':measure2,'measure_human':measure_human}
-        temp['measurelabel1'] = "Minutes"
-        temp['measurelabel2'] = "Seconds"
-        print(temp)
-
-        return temp
-    elif measuretype == "points":
-        measure1 = int(rawmark)
-        measure2 = 0 
-        measure_human = str(measure1) 
-        temp = {'measure1':int(measure1),'measure2':measure2,'measure_human':measure_human}
-        temp['measurelabel1'] = "Points"
-        temp['measurelabel2'] = "Null"
-        return temp
-    
-    return -1
-
 def calculateRawMark(measure1,measure2,measuretype):
     print('Entering Calc Raw Mark')
     print(measure1)
@@ -262,15 +264,16 @@ def convert_db_time_2_form_time(dbtime):
 @login_required(login_url='/login')
 def updatePerformance(request,pk):
   
-    performance = Performance.objects.get(id=pk)
-    
+  
+    UserStatus = {'Maintainer':request.user.Maintainer,'Editor':request.user.Editor}
+
+    performance = Performance.objects.get(id=pk)  
     athletes = Athlete.objects.filter(performance__id=pk)
     eventID = performance.EventID_id
     eventtemp = Event.objects.get(id=eventID)
     measure_system = eventtemp.MeasurementSystem
     print(measure_system)
 
-    # eventselectcontext = {'MarkRaw':performance.MarkRaw}
     eventselectcontext = {'MarkRaw':0}
     form = PerformanceForm(instance=performance,athletepk=athletes,eventselect=eventselectcontext)
  
@@ -278,9 +281,10 @@ def updatePerformance(request,pk):
     measuresystem = HumanReadableMark(performance.MarkRawLarge,performance.MarkRawSmall,measure_system)
     performancedate = convert_db_time_2_form_time(performance.EventDate)
     eventname = performance.EventID
-    # eventID = performance.EventID_id
    
-    context = {'form':form,'measure':measuresystem,'eventdate':performancedate,'EventID':eventID,'EventName':eventname}
+    context = {'form':form,'measure':measuresystem,'eventdate':performancedate,'EventID':eventID,
+                'EventName':eventname,'Maintainer':request.user.Maintainer,'Editor':request.user.Editor}
+            
 
     if request.method == 'POST':
         if 'Update' in request.POST:

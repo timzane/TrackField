@@ -11,6 +11,7 @@ urlpatterns = [
     path('', views.home, name="home"),
     path('update-user/',views.updateUser,name="update-user"),
     path('update-athlete/<str:pk>',views.updateAthlete,name="update-athlete"),
+    path('athlete-search/',views.searchAthlete,name="athlete-search"),
     path('view-athlete/<str:pk>',views.viewAthlete,name="view-athlete"),
     path('update-performance/<str:pk>',views.updatePerformance,name="update-performance"),
     path('create-performance/<str:eventid>/<str:male>',views.createPerformance,name="create-performance"),
