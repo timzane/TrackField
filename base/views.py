@@ -1,10 +1,11 @@
+from tokenize import Floatnumber
 from urllib import request
 from django.shortcuts import render, redirect
 from .models import Athlete, Meet, User, Event, Performance
 from django.contrib import messages
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login, logout
-from django.db.models import Q,Sum, Max
+from django.db.models import Q,Sum, Max, Min
 from .forms import AthleteForm, PerformanceForm, MyUserCreationForm, UserForm
 from datetime import datetime
 from django.utils.dateparse import parse_date
@@ -15,23 +16,35 @@ from django.contrib.auth.decorators import login_required
 
 def home(request):
     q = request.GET.get('q') if request.GET.get('q') != None else ''
-    # print(q)
+    qr = request.GET.get('qr') if request.GET.get('qr') != None else ''
+    
+    if qr != '':
+        active_athletes = Athlete.objects.filter(Athlete__icontains=qr).order_by('Athlete')
+        mobilemode = "ActiveAthletes"
+    else:
+        active_athletes = Athlete.objects.filter(Active=1).order_by('Athlete')
+        mobilemode = ''
+
+   
     meets = Meet.objects.all()
     events = Event.objects.all()
     performance_newest_first = Performance.objects.order_by('-updated')[0:5]
     performance_needapproval = Performance.objects.filter(Confirmed=0).order_by('-updated')[0:5]
-    active_athletes = Athlete.objects.filter(Active=1).order_by('Athlete')
+  
     events_field = Event.objects.filter(FieldEvent=1,Current=1).order_by('EventName')
     events_run = Event.objects.filter(FieldEvent=0,Current=1).order_by('EventName')
     statechamps =  Performance.objects.filter(StateChamp=1)
     leaderboardathletes = Performance.objects.values('EventID').annotate(topMark=Max('MarkRawLarge')).order_by()
     # leaderboardathletes2 = Performance.objects.
     # leaderboardathletes = Performance.objects.all().annotate(topMark=Max('MarkRawLarge')).order_by()
-    print (leaderboardathletes)
+    # leaderboardathletes = Performance.objects.filter(EventID__FieldEvent=0,AthleteID__Male=0).values('EventID').\
+    #                 annotate(topMark=Min('MarkRawLarge','MarkRawSmall')).order_by()
+    # print (leaderboardathletes)
+
     context = {'events_run':events_run,'events_field':events_field,'active_athletes':active_athletes, 
                     'performance_newest_first':performance_newest_first,'performance_needapproval':performance_needapproval,
                     'leaderboardathletes':leaderboardathletes,
-                    'statechamps':statechamps,'meets':meets,'events':events,'q':q}
+                    'statechamps':statechamps,'meets':meets,'events':events,'q':q,'qr':qr,'mobilemode':mobilemode}
 
     if request.method == 'POST':
         print("Post")                
@@ -132,13 +145,17 @@ def PerformanceTopTen(FieldEvent,pk,ShowAwaitingConfirmation):
             performanceswomen = Performance.objects.filter(EventID=pk,AthleteID__Male=False,Archive=0).\
                 order_by('MarkRawLarge','MarkRawSmall').annotate(total_athletes=Sum('AthleteID'))[0:10]
     
+    print (performancesmen)
     return{'performancesmen':performancesmen,'performanceswomen':performanceswomen}
 
 def resultEvent(request,pk):
 
     user = request.user
-    if user.Maintainer == True or user.Editor == True:
-        ShowAwaitingConfirmation = True
+    if request.user.is_authenticated:
+        if user.Maintainer == True or user.Editor == True:
+            ShowAwaitingConfirmation = True
+        else:
+            ShowAwaitingConfirmation = False
     else:
         ShowAwaitingConfirmation = False
 
@@ -190,7 +207,7 @@ def numberdecimals(inputnumber):
     return decimallocation
 
 def HumanReadableMark(rawmarklarge,rawmarksmall,measuretype):
-    print('Measure Type: ' + str(measuretype) )
+    # print('Measure Type: ' + str(measuretype) )
     if measuretype == "inches":
         measure_human = str(rawmarklarge) + "-" + str(rawmarksmall)
         temp = {'measure_human':measure_human}
@@ -272,7 +289,6 @@ def updatePerformance(request,pk):
     eventID = performance.EventID_id
     eventtemp = Event.objects.get(id=eventID)
     measure_system = eventtemp.MeasurementSystem
-    print(measure_system)
 
     eventselectcontext = {'MarkRaw':0}
     form = PerformanceForm(instance=performance,athletepk=athletes,eventselect=eventselectcontext)
@@ -311,9 +327,7 @@ def updatePerformance(request,pk):
        
             pdate = request.POST.get('EventDateDP')
             # If no date is give, keep CY date since Event Date is Unknown
-            print("This is pdate")
-            print (pdate)
-            print(pdate != 'None')
+
             if (pdate != 'None'):
                 dbenttrytime = datetime.strptime(pdate,'%m/%d/%Y')
                 performance.EventDate = dbenttrytime.strftime('%Y-%m-%d')
@@ -323,6 +337,9 @@ def updatePerformance(request,pk):
             performance.MarkRawSmall =  request.POST.get('MarkRawSmall')
             calcmeasure = HumanReadableMark(request.POST.get('MarkRawLarge'),request.POST.get('MarkRawSmall'),measure_system)            
             performance.Mark = calcmeasure['measure_human']
+            performance.Confirmed = True if request.POST.get('Confirmed') == "on" else False
+
+            print("aaaa",request.POST.get('Confirmed') )
             performance.save()
           
 

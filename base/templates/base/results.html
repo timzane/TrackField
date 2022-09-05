@@ -71,9 +71,18 @@
             </td> 
             
           <td>{{performance.MeetID.MeetName}}</td> 
-          <td>   {% if request.user.Editor == True  %} <a href = "{% url 'update-performance' performance.id %}">{{performance.Mark}}</a> 
+
+          <td>   {% if request.user.Editor == True  %} <a href = "{% url 'update-performance' performance.id %}">
+            {% if performance.Confirmed == True %}
+            {{performance.Mark}}
+            {% else %}
+           <font color="red">{{performance.Mark}}</font> 
+            {% endif %}
+          </a> 
             {% else %} {{performance.Mark}} {% endif%} </td>
-          <td> {{performance.CY }}</td>
+          
+          
+            <td> {{performance.CY }}</td>
 
         </tr>
 

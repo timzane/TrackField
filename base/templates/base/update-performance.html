@@ -142,8 +142,34 @@
     <div class="testbox">
       <form action="" method="POST">
         {% csrf_token %}
-        <h1>Update Athlete <a href="{% url 'results-event' EventID %}" class="roomListRoom__author">
-          <span> {{ EventName }} </span>
+        
+      
+       
+
+        <div class="item">
+         
+          <div class="name-item">
+              <div class = "row">
+                  <div class = "col-sm-6">      
+                    Check here to add to Official List:
+                    {% if Maintainer == True  %}
+                    -> {{form.Confirmed }}
+                   {% endif  %}
+
+
+
+                  </div>
+                 
+              </div>
+             
+          </div>
+      </div>
+
+
+
+
+        <h1>Update Athlete<a href="{% url 'results-event' EventID %}" class="roomListRoom__author">
+        <span> {{ EventName }} </span>
         </a> </h1>
         
         <div class="item">

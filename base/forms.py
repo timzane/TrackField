@@ -27,7 +27,8 @@ class PerformanceForm(ModelForm):
 
     class Meta:
         model = Performance
-        fields = ['EventID','MeetID','Mark','EventDate','PerformanceNote','CY','AthleteID','Archive','StateChamp','Notes','MarkRawLarge','MarkRawSmall']
+        fields = ['EventID','MeetID','Mark','EventDate','PerformanceNote','CY','AthleteID','Archive','StateChamp','Notes',
+            'MarkRawLarge','MarkRawSmall','Confirmed']
         labels = {
         "EventID":  "Event",
         "MeetID":  "Meet",
