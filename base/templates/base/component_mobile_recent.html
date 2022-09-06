@@ -4,15 +4,20 @@
 
   <div class="roomListRoom">
     <h1>Recent Updates</h1>
-
+    <table>
+    
     {% for performance in performance_newest_first %}
-    <div class="roomListRoom__header">
-      <a href="{% url 'update-performance' performance.id %}">{{ performance.AthleteID.all|join:", " }}</a> - {{performance.EventID.EventName }} {{ performance.Mark }}
-     
-    </div>
+      <div class="roomListRoom__header">
+        <tr>
+        <td><a href="{% url 'update-performance' performance.id %}">{{ performance.AthleteID.all|join:", " }}</a></td>
+        <td>{{performance.EventID.EventName }}</td>
+        <td>{{ performance.Mark }}</td> 
+        </tr>
+      </div>
 
     {% endfor %}
-        </div>
+    </table>  
+  </div>
       
   
 

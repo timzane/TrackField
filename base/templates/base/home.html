@@ -27,13 +27,13 @@
             </div>
           </div>
           
-          {{ qr }}
+
           {% if qr ==  "Browse" %}
             {% include 'base/events_component.html' %}
           {% elif qr == "Recent" %}
             {% include 'base/component_mobile_recent.html' %}
-          {%else %}
-             Test2
+          {%elif qr != '' %}
+            
             {% for athlete in active_athletes %}
               <div class="roomListRoom__header">
                 <a href="{% url 'view-athlete' athlete.id %}">{{ athlete.Athlete }}</a>   {{athlete.Graduation}}
@@ -62,7 +62,7 @@
             {% include 'base/statechampion_component.html' %}
           {% elif q == 'TopAthlete'  %}
             {% include 'base/component topathlete.html' %}
-          {% elif q == 'Events' %}
+          {% else  %}
             {% include 'base/events_component.html' %}
           {% endif %}
       </div>

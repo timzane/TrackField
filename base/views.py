@@ -1,3 +1,4 @@
+from __future__ import annotations
 from tokenize import Floatnumber
 from urllib import request
 from django.shortcuts import render, redirect
@@ -5,7 +6,7 @@ from .models import Athlete, Meet, User, Event, Performance
 from django.contrib import messages
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login, logout
-from django.db.models import Q,Sum, Max, Min
+from django.db.models import Q,Sum, Max, Min, OuterRef, Subquery
 from .forms import AthleteForm, PerformanceForm, MyUserCreationForm, UserForm
 from datetime import datetime
 from django.utils.dateparse import parse_date
@@ -13,6 +14,14 @@ from django.contrib.auth.decorators import login_required
 
 # Create your views here.
 
+def TopAllEvents():
+   
+    performancesmen = Performance.objects.filter(id=OuterRef('pk'),AthleteID__Male=False).values('EventID').annotate(topMark=Max('MarkRawLarge')).order_by()   
+    performancesmen = Performance.objects.filter(AthleteID__Male=False).values('EventID').annotate(topMark=Max('MarkRawLarge')).order_by()   
+   
+    # performancesmen2 = Performance.objects.all().annotate(topathlete=SubQuery(performancesmen.values('pk')))      
+    print("Test",performancesmen)
+    return performancesmen
 
 def home(request):
     q = request.GET.get('q') if request.GET.get('q') != None else ''
@@ -25,7 +34,7 @@ def home(request):
         active_athletes = Athlete.objects.filter(Active=1).order_by('Athlete')
         mobilemode = ''
 
-   
+    TopAllEvents()
     meets = Meet.objects.all()
     events = Event.objects.all()
     performance_newest_first = Performance.objects.order_by('-updated')[0:5]
@@ -34,12 +43,10 @@ def home(request):
     events_field = Event.objects.filter(FieldEvent=1,Current=1).order_by('EventName')
     events_run = Event.objects.filter(FieldEvent=0,Current=1).order_by('EventName')
     statechamps =  Performance.objects.filter(StateChamp=1)
-    leaderboardathletes = Performance.objects.values('EventID').annotate(topMark=Max('MarkRawLarge')).order_by()
-    # leaderboardathletes2 = Performance.objects.
-    # leaderboardathletes = Performance.objects.all().annotate(topMark=Max('MarkRawLarge')).order_by()
-    # leaderboardathletes = Performance.objects.filter(EventID__FieldEvent=0,AthleteID__Male=0).values('EventID').\
-    #                 annotate(topMark=Min('MarkRawLarge','MarkRawSmall')).order_by()
-    # print (leaderboardathletes)
+    leaderboardathletes = TopAllEvents()
+    # topmarks = Performance.objects.filter(EventID = OuterRef('pk')).order_by('MarkRawLarge','MarkRawSmall')
+    # eventleaders = Event.objects.all().annotate(top_athlete=Subquery(topmarks.values('EventID')[:1]))
+
 
     context = {'events_run':events_run,'events_field':events_field,'active_athletes':active_athletes, 
                     'performance_newest_first':performance_newest_first,'performance_needapproval':performance_needapproval,
@@ -118,6 +125,8 @@ def updateUser(request):
             return redirect('user-profile', pk=user.id)
 
     return render(request,'base/update-user.html',{'form':form})
+
+
 
 
 def PerformanceTopTen(FieldEvent,pk,ShowAwaitingConfirmation):
@@ -379,11 +388,6 @@ def createPerformance(request,eventid, male):
         meet, created = Meet.objects.update_or_create(id=MeetIDp)
 
         measure =  Event.objects.get(id=EventIDp)
-
-        # feet =  request.POST.get('feetname')
-        # inches =   request.POST.get('inchesname')
-        # totalinches = calculateRawMark(feet,inches,measure.MeasurementSystem)
-    
         dbenttrytime = convert_form_time_2_db_time(request.POST.get('EventDateDP'))
 
         humanMark = HumanReadableMark(request.POST.get('MarkRawLarge'), request.POST.get('MarkRawSmall'),measure_system)
