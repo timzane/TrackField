@@ -62,7 +62,7 @@
             {% include 'base/statechampion_component.html' %}
           {% elif q == 'TopAthlete'  %}
             {% include 'base/component topathlete.html' %}
-          {% else  %}
+          {% elif q != ''  %}
             {% include 'base/events_component.html' %}
           {% endif %}
       </div>
