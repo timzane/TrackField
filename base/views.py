@@ -1,4 +1,5 @@
 from __future__ import annotations
+from dataclasses import replace
 from tokenize import Floatnumber
 from urllib import request
 from django.shortcuts import render, redirect
@@ -11,8 +12,57 @@ from .forms import AthleteForm, PerformanceForm, MyUserCreationForm, UserForm
 from datetime import datetime
 from django.utils.dateparse import parse_date
 from django.contrib.auth.decorators import login_required
+from django.db import connection
+
 
 # Create your views here.
+
+def dictfetchall(cursor):
+    "Return all rows from a cursor as a dict"
+    columns = [col[0] for col in cursor.description]
+    return [
+        dict(zip(columns, row))
+        for row in cursor.fetchall()
+    ]
+
+def TopAthletes(Field,Male):
+    
+
+    sql1 = 'select PerformanceMinusAthlete.performance_id,MarkRawLarge,MarkRawSmall,EventName,CY, Mark, group_concat(Athlete) as Athletes  FROM ' \
+        '(' \
+        'select performance_id,MarkRawLarge,MarkRawSmall,EventName,CY, Mark from ' \
+        '(' \
+        'select performance_id,MarkRawLarge,MarkRawSmall,EventID_id,CY, Mark from base_performance ' \
+        'inner join ' \
+        '(' \
+        'select * from base_performance_AthleteID ' \
+        'inner JOIN ' \
+        'base_athlete on '\
+        'base_performance_AthleteID.athlete_id = base_athlete.id ' \
+        'where Male=0) as AthletesMatch ' \
+        'on AthletesMatch.performance_id = base_performance.id ' \
+        'order by EventID_id,MarkRawLarge,MarkRawSmall) as tmp ' \
+        'inner join base_event on base_event.id=tmp.EventID_id ' \
+        'where Current=1 and FieldEvent=0 ' \
+        'group by EventName) as PerformanceMinusAthlete ' \
+        'inner JOIN(select performance_id,Athlete from base_performance_AthleteID ' \
+        'inner JOIN ' \
+        'base_athlete ' \
+        'on base_performance_AthleteID.athlete_id = base_athlete.id) as AthletesCombined ' \
+        'on AthletesCombined.performance_id = PerformanceMinusAthlete.performance_id ' \
+        'group by  PerformanceMinusAthlete.performance_id,MarkRawLarge,MarkRawSmall,EventName,CY, Mark ' \
+        'order by EventName' 
+
+    if Field == True:
+        sql1 = sql1.replace('order by EventID_id,MarkRawLarge,MarkRawSmall','order by EventID_id,MarkRawLarge DESC,MarkRawSmall DESC')
+        sql1 = sql1.replace('FieldEvent=0','FieldEvent=1')
+    if Male == True:
+        sql1 = sql1.replace('where Male=0','where Male=1')
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql1)
+        row = dictfetchall(cursor)    
+    return row
 
 def TopAllEvents():
    
@@ -20,7 +70,7 @@ def TopAllEvents():
     performancesmen = Performance.objects.filter(AthleteID__Male=False).values('EventID').annotate(topMark=Max('MarkRawLarge')).order_by()   
    
     # performancesmen2 = Performance.objects.all().annotate(topathlete=SubQuery(performancesmen.values('pk')))      
-    print("Test",performancesmen)
+   # print("Test",performancesmen)
     return performancesmen
 
 def home(request):
@@ -33,7 +83,10 @@ def home(request):
     else:
         active_athletes = Athlete.objects.filter(Active=1).order_by('Athlete')
         mobilemode = ''
-
+    TopMaleField = TopAthletes(True,True)
+    TopMaleRun = TopAthletes(False,True)
+    TopFemaleField = TopAthletes(True,False)
+    TopFemaleRun = TopAthletes(False,False)
     TopAllEvents()
     meets = Meet.objects.all()
     events = Event.objects.all()
@@ -42,16 +95,18 @@ def home(request):
   
     events_field = Event.objects.filter(FieldEvent=1,Current=1).order_by('EventName')
     events_run = Event.objects.filter(FieldEvent=0,Current=1).order_by('EventName')
-    statechamps =  Performance.objects.filter(StateChamp=1)
+    statechamps =  Performance.objects.filter(StateChamp=1).order_by('CY')
     leaderboardathletes = TopAllEvents()
     # topmarks = Performance.objects.filter(EventID = OuterRef('pk')).order_by('MarkRawLarge','MarkRawSmall')
     # eventleaders = Event.objects.all().annotate(top_athlete=Subquery(topmarks.values('EventID')[:1]))
-
-
     context = {'events_run':events_run,'events_field':events_field,'active_athletes':active_athletes, 
                     'performance_newest_first':performance_newest_first,'performance_needapproval':performance_needapproval,
                     'leaderboardathletes':leaderboardathletes,
-                    'statechamps':statechamps,'meets':meets,'events':events,'q':q,'qr':qr,'mobilemode':mobilemode}
+                    'statechamps':statechamps,'meets':meets,'events':events,'q':q,'qr':qr,'mobilemode':mobilemode }
+    context['TopMaleRun'] = TopMaleRun                
+    context['TopMaleField'] = TopMaleField    
+    context['TopFemaleField'] = TopFemaleField    
+    context['TopFemaleRun'] = TopFemaleRun    
 
     if request.method == 'POST':
         print("Post")                
@@ -149,9 +204,9 @@ def PerformanceTopTen(FieldEvent,pk,ShowAwaitingConfirmation):
             performanceswomen = Performance.objects.filter(EventID=pk,AthleteID__Male=False,Archive=0,Confirmed=1).\
                 order_by('-MarkRawLarge','-MarkRawSmall').annotate(total_athletes=Sum('AthleteID'))[0:10]
         else:  
-            performancesmen =   Performance.objects.filter(EventID=pk,AthleteID__Male=True,Archive=0).\
+            performancesmen =   Performance.objects.filter(EventID=pk,AthleteID__Male=True,Archive=0,Confirmed=1).\
                 order_by('MarkRawLarge','MarkRawSmall').annotate(total_athletes=Sum('AthleteID'))[0:10]
-            performanceswomen = Performance.objects.filter(EventID=pk,AthleteID__Male=False,Archive=0).\
+            performanceswomen = Performance.objects.filter(EventID=pk,AthleteID__Male=False,Archive=0,Confirmed=1).\
                 order_by('MarkRawLarge','MarkRawSmall').annotate(total_athletes=Sum('AthleteID'))[0:10]
     
     print (performancesmen)
@@ -211,8 +266,10 @@ def viewAthlete(request,pk):
 
 
 def numberdecimals(inputnumber):
+    print("input",inputnumber)
     numberstr = str(inputnumber)
     decimallocation = numberstr.find(".")
+    
     return decimallocation
 
 def HumanReadableMark(rawmarklarge,rawmarksmall,measuretype):
@@ -229,10 +286,10 @@ def HumanReadableMark(rawmarklarge,rawmarksmall,measuretype):
         markseconds = float(rawmarksmall)
         markminute = rawmarklarge
         # digits = len(str(markseconds))
-        number_dec = numberdecimals(markminute)
+        number_dec = numberdecimals(markseconds)
 
         digits  = int(float(number_dec))
-        print (digits)
+        print ("Digits",digits)
         if digits > 1:
             fillerstr = ":"
         else:
@@ -381,9 +438,17 @@ def createPerformance(request,eventid, male):
     if request.method == 'POST':
         
 
+
+
         EventIDp = request.POST.get('EventID')
         MeetIDp = request.POST.get('MeetID')
         AthleteIDp = request.POST.getlist('AthleteID')
+        print("AA",AthleteIDp)
+        # Check for Not Athletes
+        if AthleteIDp == []:
+            print("No athlete selected")
+            return render(request,'base/update-performance.html',context)
+
         event, created = Event.objects.update_or_create(id=EventIDp)
         meet, created = Meet.objects.update_or_create(id=MeetIDp)
 
@@ -397,7 +462,6 @@ def createPerformance(request,eventid, male):
             EventID = event,
             MeetID = meet,
             Mark = humanMark['measure_human'],
-            # MarkRaw = totalinches,
             MarkRawLarge = request.POST.get('MarkRawLarge'),
             MarkRawSmall =request.POST.get('MarkRawSmall'),
             Notes = request.POST.get('Notes'),
@@ -409,9 +473,6 @@ def createPerformance(request,eventid, male):
      
         for athid in AthleteIDp:
             athtoadd = Athlete.objects.get(id=athid)
-            
-        
-
             instance.AthleteID.add(athtoadd)
         
         return redirect('home')

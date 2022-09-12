@@ -15,7 +15,7 @@
     <td> {% for athlete in champion.AthleteID.all %}<a href ="{% url 'view-athlete' athlete.id %}">{{athlete.Athlete}} </a></p>{% endfor %} </td> 
     <td> {{champion.Mark }} </td>
     <td> {{champion.EventID }}</td>
-    <td> {{champion.topMark }} </td> 
+    <td> {{champion.CY }}</td> 
   </tr>
 </div>
 {% endfor %}
