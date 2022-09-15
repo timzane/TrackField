@@ -68,9 +68,6 @@ def TopAllEvents():
    
     performancesmen = Performance.objects.filter(id=OuterRef('pk'),AthleteID__Male=False).values('EventID').annotate(topMark=Max('MarkRawLarge')).order_by()   
     performancesmen = Performance.objects.filter(AthleteID__Male=False).values('EventID').annotate(topMark=Max('MarkRawLarge')).order_by()   
-   
-    # performancesmen2 = Performance.objects.all().annotate(topathlete=SubQuery(performancesmen.values('pk')))      
-   # print("Test",performancesmen)
     return performancesmen
 
 def home(request):
@@ -236,6 +233,25 @@ def resultEvent(request,pk):
     context = {'performancesmen':performancesmen,'performanceswomen':performanceswomen,'event':event} 
     return render(request,'base/results.html',context)    
 
+
+def createAthlete(request):
+   
+    form = AthleteForm()
+    
+    if request.method == 'POST':
+        form = AthleteForm(request.POST)
+       
+        if form.is_valid():
+            print('Athlete',request.POST.get('Athlete'))
+            AthleteVarChar = request.POST.get('Athlete')
+            if AthleteVarChar == '':
+                print('Uau')
+            form.save()
+            
+            return redirect('home')
+
+    return render(request,'base/update-athlete.html',{'form':form})
+
 def updateAthlete(request,pk):
     athlete = Athlete.objects.get(id=pk)
     form = AthleteForm(instance=athlete)
@@ -259,7 +275,7 @@ def searchAthlete(request):
 def viewAthlete(request,pk):
    
     athlete = Athlete.objects.get(id=pk)
-    performanceResults = Performance.objects.filter(AthleteID=athlete.id)
+    performanceResults = Performance.objects.filter(AthleteID=athlete.id,Archive=False)
     context = {'performanceResults':performanceResults,'athlete':athlete}
 
     return render(request,'base/view-athlete.html',context)
@@ -348,7 +364,7 @@ def convert_db_time_2_form_time(dbtime):
 def updatePerformance(request,pk):
   
   
-    UserStatus = {'Maintainer':request.user.Maintainer,'Editor':request.user.Editor}
+    # UserStatus = {'Maintainer':request.user.Maintainer,'Editor':request.user.Editor}
 
     performance = Performance.objects.get(id=pk)  
     athletes = Athlete.objects.filter(performance__id=pk)
@@ -428,22 +444,16 @@ def createPerformance(request,eventid, male):
     form = PerformanceForm(athletepk=athletes,eventselect=eventid2)
  
     eventname = Event.objects.get(id=eventid2['eventid'])
- 
-    print(eventname.MeasurementSystem)
-    # measuresystem = RawMark2Parts(0,eventname.MeasurementSystem)
+
     eventtemp = Event.objects.get(id=eventid2['eventid'])
     measure_system = eventtemp.MeasurementSystem
     context = {'form':form,'measure':measure_system,'EventID':eventid2['eventid'],'EventName':eventname.EventName}
     
     if request.method == 'POST':
-        
-
-
-
         EventIDp = request.POST.get('EventID')
         MeetIDp = request.POST.get('MeetID')
         AthleteIDp = request.POST.getlist('AthleteID')
-        print("AA",AthleteIDp)
+
         # Check for Not Athletes
         if AthleteIDp == []:
             print("No athlete selected")
@@ -452,7 +462,7 @@ def createPerformance(request,eventid, male):
         event, created = Event.objects.update_or_create(id=EventIDp)
         meet, created = Meet.objects.update_or_create(id=MeetIDp)
 
-        measure =  Event.objects.get(id=EventIDp)
+        # measure =  Event.objects.get(id=EventIDp)
         dbenttrytime = convert_form_time_2_db_time(request.POST.get('EventDateDP'))
 
         humanMark = HumanReadableMark(request.POST.get('MarkRawLarge'), request.POST.get('MarkRawSmall'),measure_system)

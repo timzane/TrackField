@@ -17,7 +17,7 @@ class MyUserCreationForm(UserCreationForm):
 class AthleteForm(ModelForm):
     class Meta:
         model = Athlete
-        fields = ['First','Last','Athlete','Active','Male']
+        fields = ['First','Last','Athlete','Active','Male','Graduation']
         
 
 

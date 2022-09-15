@@ -13,6 +13,7 @@ urlpatterns = [
     path('update-athlete/<str:pk>',views.updateAthlete,name="update-athlete"),
     path('athlete-search/',views.searchAthlete,name="athlete-search"),
     path('view-athlete/<str:pk>',views.viewAthlete,name="view-athlete"),
+    path('create-athlete/',views.createAthlete,name="create-athlete"),
     path('update-performance/<str:pk>',views.updatePerformance,name="update-performance"),
     path('create-performance/<str:eventid>/<str:male>',views.createPerformance,name="create-performance"),
     path('test/',views.testpage,name="test-page"),
