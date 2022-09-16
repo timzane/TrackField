@@ -226,11 +226,12 @@ def resultEvent(request,pk):
     resultscombined = PerformanceTopTen(event.FieldEvent,pk,ShowAwaitingConfirmation)
     performancesmen = resultscombined['performancesmen']
     performanceswomen = resultscombined['performanceswomen'] 
+    performance_men_women = (performancesmen,performanceswomen)
 
     event = Event.objects.get(id=pk)
     
 
-    context = {'performancesmen':performancesmen,'performanceswomen':performanceswomen,'event':event} 
+    context = {'performance_men_women':performance_men_women,'performancesmen':performancesmen,'performanceswomen':performanceswomen,'event':event} 
     return render(request,'base/results.html',context)    
 
 
