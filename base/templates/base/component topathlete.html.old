@@ -18,10 +18,10 @@
     <td> {{champion.CY }} </td> 
     <td> {{champion.Athletes}} </td> 
   </tr>
-
+</div>
 {% endfor %}
 </table>
-</div>
+
 
 <h1>HHS Male Run Leaders</h1>
 <div class="roomListRoom__header"></div>

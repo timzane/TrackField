@@ -1,34 +1,39 @@
 
+<style>
+  table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+  }
+  th, td {
+    padding: 4px;
+  }
+  th {
+    text-align: left;
+  }
+  </style>
 
- <div class="roomListRoom">
-    <div class="roomListRoom__header">
-      <table><tr>
-        <th>Event</th>
-        <th>Mark</th>
-        <th>Year</th>
-        <th>Athlete</th>
-      </tr>
-      
-      {% for champion in TopMaleField %}
-      
-        <tr>
-         
-          <td> {{champion.EventName }}   </td>
-          <td> {{champion.Mark}}  </td>
-          <td> {{champion.CY }} </td> 
-          <td> {{champion.Athletes}} </td> 
-        </tr>
-      </div>
-      {% endfor %}
-      </table>
-            </div>
+{% for TopAthletes in TopAthletesMatrix %}
 
-        
-</div>
+
 
 
 
 <div class="roomListRoom">
+  
+  
+  {%  if forloop.counter == 1  %}
+Men's Top Athlete Per Running Event
+{% elif forloop.counter == 2  %}
+Men's Top Athlete Per Field Event
+{% elif forloop.counter == 3  %}
+Women's Top Athlete Per Running Event
+{% elif forloop.counter == 4 %}
+Women's Top Athlete Per Field Event
+{% endif %}
+  
+  
+  
+  
   <div class="roomListRoom__header">
     <table><tr>
       <th>Event</th>
@@ -37,7 +42,7 @@
       <th>Athlete</th>
     </tr>
     
-    {% for champion in TopMaleRun %}
+    {% for champion in TopAthletes %}
     
       <tr>
        
@@ -54,56 +59,5 @@
       
 </div>
 
+{% endfor %}
 
-
-
-
-<div class="roomListRoom">
-<div class="roomListRoom__header">
-  <table><tr>
-    <th>Event</th>
-    <th>Mark</th>
-    <th>Year</th>
-    <th>Athlete</th>
-  </tr>
-  
-  {% for champion in TopFemaleField %}
-  
-    <tr>
-     
-      <td> {{champion.EventName }}   </td>
-      <td> {{champion.Mark}}  </td>
-      <td> {{champion.CY }} </td> 
-      <td> {{champion.Athletes}} </td> 
-    </tr>
-  </div>
-  {% endfor %}
-  </table>
-</div>
-</div>
-
-<div class="roomListRoom">
-  <div class="roomListRoom__header">
-    <table><tr>
-      <th>Event</th>
-      <th>Mark</th>
-      <th>Year</th>
-      <th>Athlete</th>
-    </tr>
-    
-    {% for champion in TopFemaleRun %}
-    
-      <tr>
-       
-        <td> {{champion.EventName }}   </td>
-        <td> {{champion.Mark}}  </td>
-        <td> {{champion.CY }} </td> 
-        <td> {{champion.Athletes}} </td> 
-      </tr>
-    </div>
-    {% endfor %}
-    </table>
-          </div>
-
-      
-</div>

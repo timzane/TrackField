@@ -37,8 +37,11 @@
           Women
         {% endif %}
           
-        's Results {{ event.EventName }}    <a href="{% url 'create-performance' event.id 0 %}">Add performance</a>
-      <table>
+        's Results {{ event.EventName }}  
+        {%  if Maintainer == True or Editor == True %}
+        <a href="{% url 'create-performance' event.id 0 %}">Add performance</a>
+        {% endif %}
+        <table>
           <tr>
             <th>Name</th>
             <th>Meet</th>

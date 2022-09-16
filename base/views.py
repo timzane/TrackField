@@ -79,7 +79,9 @@ def home(request):
         mobilemode = "ActiveAthletes"
     else:
         active_athletes = Athlete.objects.filter(Active=1).order_by('Athlete')
+        inactive_athletes =  Athlete.objects.filter(Active=0).order_by('Graduation','Athlete')
         mobilemode = ''
+    
     TopMaleField = TopAthletes(True,True)
     TopMaleRun = TopAthletes(False,True)
     TopFemaleField = TopAthletes(True,False)
@@ -103,8 +105,12 @@ def home(request):
     context['TopMaleRun'] = TopMaleRun                
     context['TopMaleField'] = TopMaleField    
     context['TopFemaleField'] = TopFemaleField    
-    context['TopFemaleRun'] = TopFemaleRun    
+    context['TopFemaleRun'] = TopFemaleRun   
+    context['inactive_athletes'] = inactive_athletes 
 
+    TopAthletesMatrix = (TopMaleRun,TopMaleField,TopFemaleRun,TopFemaleField)
+    context['TopAthletesMatrix'] = TopAthletesMatrix
+    
     if request.method == 'POST':
         print("Post")                
     return render(request, 'base/home.html',context )
@@ -209,17 +215,29 @@ def PerformanceTopTen(FieldEvent,pk,ShowAwaitingConfirmation):
     print (performancesmen)
     return{'performancesmen':performancesmen,'performanceswomen':performanceswomen}
 
-def resultEvent(request,pk):
-
+def user_status(request):
     user = request.user
     if request.user.is_authenticated:
-        if user.Maintainer == True or user.Editor == True:
-            ShowAwaitingConfirmation = True
+        if user.Maintainer == True:
+            Maintainer = True
         else:
-            ShowAwaitingConfirmation = False
+            Maintainer = False    
+        if user.Editor == True:    
+            Editor = True
+        else:
+            Editor = False    
+    else:
+        Maintainer = False
+        Editor = False
+    return (Maintainer,Editor)
+
+def resultEvent(request,pk):
+
+    Maintainer,Editor = user_status(request)
+    if Maintainer or Editor:
+        ShowAwaitingConfirmation = True
     else:
         ShowAwaitingConfirmation = False
-
     
     event = Event.objects.get(id=pk)
 
@@ -231,7 +249,9 @@ def resultEvent(request,pk):
     event = Event.objects.get(id=pk)
     
 
-    context = {'performance_men_women':performance_men_women,'performancesmen':performancesmen,'performanceswomen':performanceswomen,'event':event} 
+    context = {'performance_men_women':performance_men_women,'event':event}
+    context['Maintainer'] = Maintainer
+    context['Editor'] = Editor
     return render(request,'base/results.html',context)    
 
 
