@@ -1,16 +1,38 @@
+<style>
+  table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+  }
+  th, td {
+    padding: 4px;
+  }
+  th {
+    text-align: left;
+  }
+  </style>
+
+
 <div class="topics">
     <div class="topics__header">
       <h2>Recent Updates</h2>
     </div>
     <ul class="topics__list">
 
-      {% for performance in performance_newest_first %}
-      <div class="roomListRoom__header">
-        <a href="{% url 'update-performance' performance.id %}">{{ performance.AthleteID.all|join:", " }}</a> - {{performance.EventID.EventName }} {{ performance.Mark }}
+       
+        <table>
+          {% for performance in performance_newest_first %}
+          <div class="roomListRoom__header">
+          <tr>
+          <td><a href="{% url 'update-performance' performance.id %}">{{ performance.AthleteID.all|join:", " }}</a></td>
+          <td>{{performance.EventID.EventName }}</td> 
+          <td>{{ performance.Mark }}</td>
+          </tr>
+          {% endfor %}
+        </table>
        
       </div>
 
-      {% endfor %}
+     
   
     </ul>
     

@@ -81,7 +81,7 @@ def home(request):
         active_athletes = Athlete.objects.filter(Active=1).order_by('Athlete')
         inactive_athletes =  Athlete.objects.filter(Active=0).order_by('Graduation','Athlete')
         mobilemode = ''
-    
+    inactive_athletes =  Athlete.objects.filter(Active=0).order_by('Graduation','Athlete')
     TopMaleField = TopAthletes(True,True)
     TopMaleRun = TopAthletes(False,True)
     TopFemaleField = TopAthletes(True,False)
@@ -110,7 +110,7 @@ def home(request):
 
     TopAthletesMatrix = (TopMaleRun,TopMaleField,TopFemaleRun,TopFemaleField)
     context['TopAthletesMatrix'] = TopAthletesMatrix
-    
+
     if request.method == 'POST':
         print("Post")                
     return render(request, 'base/home.html',context )
