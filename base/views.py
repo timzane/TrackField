@@ -96,16 +96,12 @@ def home(request):
     events_run = Event.objects.filter(FieldEvent=0,Current=1).order_by('EventName')
     statechamps =  Performance.objects.filter(StateChamp=1).order_by('CY')
     leaderboardathletes = TopAllEvents()
-    # topmarks = Performance.objects.filter(EventID = OuterRef('pk')).order_by('MarkRawLarge','MarkRawSmall')
-    # eventleaders = Event.objects.all().annotate(top_athlete=Subquery(topmarks.values('EventID')[:1]))
+
     context = {'events_run':events_run,'events_field':events_field,'active_athletes':active_athletes, 
                     'performance_newest_first':performance_newest_first,'performance_needapproval':performance_needapproval,
                     'leaderboardathletes':leaderboardathletes,
                     'statechamps':statechamps,'meets':meets,'events':events,'q':q,'qr':qr,'mobilemode':mobilemode }
-    context['TopMaleRun'] = TopMaleRun                
-    context['TopMaleField'] = TopMaleField    
-    context['TopFemaleField'] = TopFemaleField    
-    context['TopFemaleRun'] = TopFemaleRun   
+ 
     context['inactive_athletes'] = inactive_athletes 
 
     TopAthletesMatrix = (TopMaleRun,TopMaleField,TopFemaleRun,TopFemaleField)

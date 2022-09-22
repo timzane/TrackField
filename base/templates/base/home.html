@@ -24,14 +24,32 @@
             <div class="mobile-menuItems">
               <a class="btn btn--main btn--pill" href="{% url 'home' %}?qr=Browse">Browse Events</a>
               <a class="btn btn--main btn--pill" href="{% url 'home' %}?qr=Recent">Recent Updates</a>
+              <a class="btn btn--main btn--pill" href="{% url 'home' %}?qr=TopAthlete">Top Athletes</a>
             </div>
           </div>
           
+
+          <div class="roomList__header">
+            
+            <div class="mobile-menuItems">
+              <a class="btn btn--main btn--pill" href="{% url 'home' %}?qr=Browse">Browse Events</a>
+              <a class="btn btn--main btn--pill" href="{% url 'home' %}?qr=Recent">Recent Updates</a>
+              <a class="btn btn--main btn--pill" href="{% url 'home' %}?qr=TopAthlete">Top Athletes</a>
+            </div>
+          
+
+
+       
+              
+     
+          </div>
 
           {% if qr ==  "Browse" %}
             {% include 'base/events_component.html' %}
           {% elif qr == "Recent" %}
             {% include 'base/component_mobile_recent.html' %}
+          {% elif qr == "TopAthlete" %}
+            {% include 'base/component_mobile_topathlete.html' %}
           {%elif qr != '' %}
             
             {% for athlete in active_athletes %}
@@ -43,13 +61,9 @@
 
           {% endif %}
 
+          
 
-          <div class="roomList__header">
-            
-       
-            
-    
-          </div>
+         
 
 
        
