@@ -21,11 +21,13 @@
                 <input name = "qr" placeholder="Search for athletes" />
               </label>
             </form>
+            {% comment %}
             <div class="mobile-menuItems">
               <a class="btn btn--main btn--pill" href="{% url 'home' %}?qr=Browse">Browse Events</a>
               <a class="btn btn--main btn--pill" href="{% url 'home' %}?qr=Recent">Recent Updates</a>
               <a class="btn btn--main btn--pill" href="{% url 'home' %}?qr=TopAthlete">Top Athletes</a>
             </div>
+            {% endcomment %}
           </div>
           
 
@@ -43,6 +45,8 @@
               
      
           </div>
+
+
 
           {% if qr ==  "Browse" %}
             {% include 'base/events_component.html' %}
